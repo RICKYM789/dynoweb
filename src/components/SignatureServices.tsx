@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, Clock, Sparkles } from 'lucide-react';
 import { SERVICES_DATA } from '../data/salonData';
@@ -11,9 +11,24 @@ interface SignatureServicesProps {
 export const SignatureServices: React.FC<SignatureServicesProps> = ({ onSelectService }) => {
   const [activeCategory, setActiveCategory] = useState<'HAIR' | 'GROOMING' | 'BEAUTY'>('HAIR');
   const [activeServiceId, setActiveServiceId] = useState<string>(SERVICES_DATA[0].id);
+  const [previewY, setPreviewY] = useState<number>(0);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const filteredServices = SERVICES_DATA.filter((s) => s.category === activeCategory);
   const selectedService = SERVICES_DATA.find((s) => s.id === activeServiceId) || filteredServices[0];
+
+  const handleServiceHover = (serviceId: string, e: React.MouseEvent<HTMLDivElement>) => {
+    setActiveServiceId(serviceId);
+    if (e.currentTarget && containerRef.current) {
+      const itemTop = e.currentTarget.offsetTop;
+      const containerHeight = containerRef.current.offsetHeight;
+      const cardHeight = cardRef.current ? cardRef.current.offsetHeight : 400;
+      const maxTop = Math.max(0, containerHeight - cardHeight);
+      setPreviewY(Math.min(itemTop, maxTop));
+    }
+  };
 
   return (
     <section id="services" className="py-24 md:py-36 bg-salon-darkBrown text-white relative overflow-hidden">
@@ -37,6 +52,7 @@ export const SignatureServices: React.FC<SignatureServicesProps> = ({ onSelectSe
                 key={cat}
                 onClick={() => {
                   setActiveCategory(cat);
+                  setPreviewY(0);
                   const firstInCat = SERVICES_DATA.find((s) => s.category === cat);
                   if (firstInCat) setActiveServiceId(firstInCat.id);
                 }}
@@ -52,11 +68,11 @@ export const SignatureServices: React.FC<SignatureServicesProps> = ({ onSelectSe
           </div>
         </div>
 
-        {/* Gallery-Style Split View (Compact Left List + Sticky Right Image Preview) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        {/* Gallery-Style Split View */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start relative">
           
-          {/* Left Column: Compact Interactive Service List */}
-          <div className="lg:col-span-6 space-y-2">
+          {/* Left Column: Interactive Service List */}
+          <div ref={containerRef} className="lg:col-span-6 space-y-2">
             {filteredServices.map((service, index) => {
               const isActive = selectedService.id === service.id;
               const formattedNumber = index < 10 ? `0${index}` : `${index}`;
@@ -64,8 +80,8 @@ export const SignatureServices: React.FC<SignatureServicesProps> = ({ onSelectSe
               return (
                 <motion.div
                   key={service.id}
-                  onMouseEnter={() => setActiveServiceId(service.id)}
-                  onClick={() => setActiveServiceId(service.id)}
+                  onMouseEnter={(e) => handleServiceHover(service.id, e)}
+                  onClick={(e) => handleServiceHover(service.id, e)}
                   className={`group cursor-pointer p-4 md:p-5 rounded-xl border transition-all duration-300 ${
                     isActive
                       ? 'bg-white/10 border-salon-gold/60 shadow-lg translate-x-2'
@@ -113,59 +129,65 @@ export const SignatureServices: React.FC<SignatureServicesProps> = ({ onSelectSe
             })}
           </div>
 
-          {/* Right Column: Sticky Art Display Card with Smooth Image Hover Transformation */}
-          <div className="hidden lg:block lg:col-span-6 sticky top-32">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={selectedService.id}
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                whileHover={{ scale: 1.04, transition: { duration: 0.3 } }}
-                transition={{ duration: 0.3 }}
-                className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-2xl border border-white/20 flex flex-col justify-end p-6 md:p-8 bg-salon-darkBrown group/card cursor-pointer"
-              >
-                {/* Full Resolution Background Image */}
-                <img
-                  src={selectedService.image}
-                  alt={selectedService.name}
-                  className="absolute inset-0 w-full h-full object-cover object-center opacity-85 transition-transform duration-700 group-hover/card:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-salon-darkBrown via-salon-darkBrown/40 to-transparent" />
+          {/* Right Column: Preview Display Card smooth-gliding to align right next to hovered service */}
+          <div className="hidden lg:block lg:col-span-6 relative min-h-[450px]">
+            <motion.div
+              ref={cardRef}
+              animate={{ y: previewY }}
+              transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+              whileHover={{ scale: 1.04, transition: { duration: 0.3 } }}
+              className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-2xl border border-white/20 flex flex-col justify-end p-6 md:p-8 bg-salon-darkBrown group/card cursor-pointer"
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={selectedService.id}
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.25 }}
+                  className="absolute inset-0"
+                >
+                  <img
+                    src={selectedService.image}
+                    alt={selectedService.name}
+                    className="absolute inset-0 w-full h-full object-cover object-center opacity-85 transition-transform duration-700 group-hover/card:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-salon-darkBrown via-salon-darkBrown/40 to-transparent" />
+                </motion.div>
+              </AnimatePresence>
 
-                {/* Content Overlay */}
-                <div className="relative z-10 space-y-3">
-                  <div className="flex items-center justify-between text-xs font-sans tracking-widest text-salon-gold uppercase">
-                    <span className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-salon-gold/30">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      {selectedService.category} ARTISTRY
+              {/* Content Overlay */}
+              <div className="relative z-10 space-y-3">
+                <div className="flex items-center justify-between text-xs font-sans tracking-widest text-salon-gold uppercase">
+                  <span className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-salon-gold/30">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {selectedService.category} ARTISTRY
+                  </span>
+                  {selectedService.duration && (
+                    <span className="flex items-center gap-1 text-white/90 bg-black/50 px-2.5 py-0.5 rounded-full">
+                      <Clock className="w-3.5 h-3.5 text-salon-gold" />
+                      {selectedService.duration}
                     </span>
-                    {selectedService.duration && (
-                      <span className="flex items-center gap-1 text-white/90 bg-black/50 px-2.5 py-0.5 rounded-full">
-                        <Clock className="w-3.5 h-3.5 text-salon-gold" />
-                        {selectedService.duration}
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="font-serif text-3xl text-salon-beige font-light leading-tight">
-                    {selectedService.name}
-                  </h3>
-
-                  <p className="text-xs font-sans text-salon-sand font-light leading-relaxed line-clamp-3">
-                    {selectedService.description}
-                  </p>
-
-                  <button
-                    onClick={() => onSelectService(selectedService.name)}
-                    className="w-full py-3 bg-salon-gold text-salon-darkBrown font-sans text-xs font-bold tracking-[0.2em] uppercase rounded-full hover:bg-white transition-all transform hover:scale-[1.02] shadow-xl flex items-center justify-center gap-2"
-                  >
-                    <span>BOOK THIS SERVICE</span>
-                    <ArrowUpRight className="w-4 h-4" />
-                  </button>
+                  )}
                 </div>
-              </motion.div>
-            </AnimatePresence>
+
+                <h3 className="font-serif text-3xl text-salon-beige font-light leading-tight">
+                  {selectedService.name}
+                </h3>
+
+                <p className="text-xs font-sans text-salon-sand font-light leading-relaxed line-clamp-3">
+                  {selectedService.description}
+                </p>
+
+                <button
+                  onClick={() => onSelectService(selectedService.name)}
+                  className="w-full py-3 bg-salon-gold text-salon-darkBrown font-sans text-xs font-bold tracking-[0.2em] uppercase rounded-full hover:bg-white transition-all transform hover:scale-[1.02] shadow-xl flex items-center justify-center gap-2"
+                >
+                  <span>BOOK THIS SERVICE</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
           </div>
 
         </div>
