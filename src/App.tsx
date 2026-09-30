@@ -14,6 +14,7 @@ import { InstagramStories } from './components/InstagramStories';
 import { BookingModal } from './components/BookingModal';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
+import { AskDynoFloatingButton } from './components/AskDynoFloatingButton';
 
 export function App() {
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -90,15 +91,11 @@ export function App() {
         onOpenBooking={(srv, styl) => handleOpenBooking(srv, styl)}
       />
 
-      {/* Floating Trigger Button for AI Assistant */}
-      <button
+      {/* Animated Floating Trigger Button for AI Assistant (Bottom-Right) */}
+      <AskDynoFloatingButton
+        isOpen={aiOpen}
         onClick={() => setAiOpen((prev) => !prev)}
-        className="fixed bottom-6 left-6 z-40 px-5 py-3 bg-salon-darkBrown text-salon-gold rounded-full border border-salon-gold/50 shadow-2xl hover:bg-salon-gold hover:text-salon-darkBrown transition-all duration-300 flex items-center gap-2 text-xs font-sans font-bold tracking-widest uppercase group"
-        aria-label="Open AI Stylist Concierge"
-      >
-        <div className="w-2 h-2 rounded-full bg-salon-gold group-hover:bg-salon-darkBrown animate-ping" />
-        <span>ASK DYNO</span>
-      </button>
+      />
 
       {/* Interactive Multi-step Booking Modal */}
       <BookingModal
