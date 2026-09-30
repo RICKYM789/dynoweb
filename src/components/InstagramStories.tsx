@@ -54,7 +54,7 @@ export const InstagramStories: React.FC = () => {
               <img
                 src={story.thumbnail}
                 alt={story.title}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80"
+                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105 opacity-90 group-hover:opacity-100"
               />
 
               {/* Gradient Overlay */}

@@ -433,50 +433,50 @@ export const GOOGLE_REVIEWS_DATA: Review[] = [
 export const INSTAGRAM_STORIES_DATA: InstagramStory[] = [
   {
     id: "ig-1",
-    title: "Vibrant Copper Balayage & Glass Hair Blowout",
-    category: "TRANSFORMATION",
+    title: "Sharp Cut & Client Confidence Story",
+    category: "CLIENT TESTIMONIAL",
     reelUrl: "https://www.instagram.com/reel/DT-edPSk0_9/",
-    thumbnail: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&q=80&w=800",
+    thumbnail: "/stories/story01.jpg",
     views: "14.2k"
   },
   {
     id: "ig-2",
-    title: "Precision Skin Fade & Hot Towel Beard Sculpting",
-    category: "MEN'S GROOMING",
+    title: "Chestnut Brown Transformation by Muthu",
+    category: "COLOR ARTISTRY",
     reelUrl: "https://www.instagram.com/reel/DTfgPLOk5Nz/",
-    thumbnail: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&q=80&w=800",
+    thumbnail: "/stories/story02.jpg",
     views: "18.9k"
   },
   {
     id: "ig-3",
-    title: "Brazilian Keratin Treatment Before & After Results",
-    category: "KERATIN THERAPY",
+    title: "Pure Joy & Gorgeous Hair Transformation",
+    category: "CLIENT LOVE",
     reelUrl: "https://www.instagram.com/reel/DSuk9EVDvIy/",
-    thumbnail: "https://images.unsplash.com/photo-1519699047748-de8e457a634e?auto=format&fit=crop&q=80&w=800",
+    thumbnail: "/stories/story03.jpg",
     views: "22.5k"
   },
   {
     id: "ig-4",
-    title: "Textured Butterfly Cut & Face Framing Bangs",
-    category: "HAIR SCULPTING",
+    title: "The Dyno Grooming Experience & Trust",
+    category: "GROOMING STORY",
     reelUrl: "https://www.instagram.com/reel/DR_54AcEwF2/",
-    thumbnail: "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=800",
+    thumbnail: "/stories/story04.jpg",
     views: "11.8k"
   },
   {
     id: "ig-5",
-    title: "Couture Event Hair & Glowing Airbrush Makeup",
-    category: "EVENT ARTISTRY",
+    title: "Making Every Client Feel Beautiful",
+    category: "CLIENT FEEDBACK",
     reelUrl: "https://www.instagram.com/reel/DQmIk1Ck81R/",
-    thumbnail: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&q=80&w=800",
+    thumbnail: "/stories/story05.jpg",
     views: "29.1k"
   },
   {
     id: "ig-6",
-    title: "Curly Hair Detox Spa & Hydration Sculpture",
-    category: "CURL ARTISTRY",
+    title: "All the Way from Malaysia for Dyno Magic",
+    category: "GLOBAL CLIENTS",
     reelUrl: "https://www.instagram.com/reel/DPq0Vaxk_Le/",
-    thumbnail: "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?auto=format&fit=crop&q=80&w=800",
+    thumbnail: "/stories/story06.jpg",
     views: "16.4k"
   }
 ];
