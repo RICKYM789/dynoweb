@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, User, Scissors, CheckCircle2, MessageSquare, Phone } from 'lucide-react';
+import { X, Calendar, Clock, User, Scissors, CheckCircle2, MessageSquare, Phone, Check } from 'lucide-react';
 import { SERVICES_DATA, STYLISTS_DATA, SALON_INFO } from '../data/salonData';
 
 interface BookingModalProps {
@@ -17,7 +17,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   initialStylist = ''
 }) => {
   const [step, setStep] = useState(1);
-  const [selectedService, setSelectedService] = useState(initialService || SERVICES_DATA[0].name);
+  const [selectedServices, setSelectedServices] = useState<string[]>(() =>
+    initialService ? [initialService] : [SERVICES_DATA[0].name]
+  );
   const [selectedStylist, setSelectedStylist] = useState(initialStylist || 'Any Available Artist');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedTime, setSelectedTime] = useState('11:00 AM');
@@ -26,6 +28,29 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [clientPhone, setClientPhone] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientNotes, setClientNotes] = useState('');
+
+  // Synchronize when modal opens or initialService/initialStylist props change
+  useEffect(() => {
+    if (isOpen) {
+      setStep(1);
+      if (initialService) {
+        setSelectedServices([initialService]);
+      } else {
+        setSelectedServices([SERVICES_DATA[0].name]);
+      }
+      if (initialStylist) {
+        setSelectedStylist(initialStylist);
+      }
+    }
+  }, [isOpen, initialService, initialStylist]);
+
+  const toggleService = (serviceName: string) => {
+    setSelectedServices((prev) =>
+      prev.includes(serviceName)
+        ? prev.filter((s) => s !== serviceName)
+        : [...prev, serviceName]
+    );
+  };
 
   const timeSlots = [
     '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM',
@@ -38,9 +63,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     setStep(6);
   };
 
+  const servicesText = selectedServices.length > 0 ? selectedServices.join(', ') : 'Custom Consultation';
+
   const whatsappMessage = encodeURIComponent(
     `Hello Dyno Art Salon! I would like to confirm my appointment:\n\n` +
-    `• Service: ${selectedService}\n` +
+    `• Service${selectedServices.length > 1 ? 's' : ''}: ${servicesText}\n` +
     `• Artist: ${selectedStylist}\n` +
     `• Date: ${selectedDate}\n` +
     `• Time: ${selectedTime}\n` +
@@ -89,33 +116,66 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               {/* STEP 1: Select Service */}
               {step === 1 && (
                 <div className="space-y-4">
-                  <h4 className="font-serif text-xl text-salon-darkBrown font-normal flex items-center gap-2">
-                    <Scissors className="w-5 h-5 text-salon-gold" />
-                    <span>01. Select Your Service</span>
-                  </h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-serif text-xl text-salon-darkBrown font-normal flex items-center gap-2">
+                      <Scissors className="w-5 h-5 text-salon-gold" />
+                      <span>01. Select Your Services</span>
+                    </h4>
+                    <span className="text-[10px] font-sans font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-salon-gold/20 text-salon-darkBrown border border-salon-gold/40">
+                      {selectedServices.length} Selected
+                    </span>
+                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
-                    {SERVICES_DATA.map((srv) => (
-                      <button
-                        key={srv.id}
-                        onClick={() => setSelectedService(srv.name)}
-                        className={`p-3.5 rounded-xl border text-left text-xs font-sans transition-all flex items-center justify-between ${
-                          selectedService === srv.name
-                            ? 'bg-salon-deepBrown text-white border-salon-deepBrown shadow-md font-bold'
-                            : 'bg-white text-salon-charcoal border-salon-sand hover:border-salon-gold'
-                        }`}
-                      >
-                        <span>{srv.name}</span>
-                        <span className="text-[10px] opacity-70 uppercase tracking-widest">{srv.category}</span>
-                      </button>
-                    ))}
+                  <p className="text-xs font-sans text-salon-muted font-light">
+                    Select one or multiple services. Click again to unselect.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-1">
+                    {SERVICES_DATA.map((srv) => {
+                      const isSelected = selectedServices.includes(srv.name);
+                      return (
+                        <button
+                          key={srv.id}
+                          type="button"
+                          onClick={() => toggleService(srv.name)}
+                          className={`p-3.5 rounded-xl border text-left text-xs font-sans transition-all flex items-center justify-between group ${
+                            isSelected
+                              ? 'bg-salon-deepBrown text-white border-salon-deepBrown shadow-md font-semibold'
+                              : 'bg-white text-salon-charcoal border-salon-sand hover:border-salon-gold/60'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                            <div className={`w-4 h-4 rounded-md shrink-0 flex items-center justify-center border transition-all ${
+                              isSelected
+                                ? 'bg-salon-gold border-salon-gold text-salon-darkBrown'
+                                : 'border-salon-sand bg-salon-beige/60 group-hover:border-salon-gold/50'
+                            }`}>
+                              {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                            </div>
+                            <span className="truncate">{srv.name}</span>
+                          </div>
+                          <span className={`text-[10px] uppercase tracking-widest shrink-0 ${
+                            isSelected ? 'text-salon-gold' : 'opacity-60'
+                          }`}>
+                            {srv.category}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
 
                   <button
+                    disabled={selectedServices.length === 0}
                     onClick={() => setStep(2)}
-                    className="w-full py-3.5 bg-salon-gold text-salon-darkBrown font-sans font-bold text-xs tracking-widest uppercase rounded-full shadow-lg hover:bg-salon-darkBrown hover:text-white transition-all mt-4"
+                    className={`w-full py-3.5 font-sans font-bold text-xs tracking-widest uppercase rounded-full shadow-lg transition-all mt-4 ${
+                      selectedServices.length > 0
+                        ? 'bg-salon-gold text-salon-darkBrown hover:bg-salon-darkBrown hover:text-white cursor-pointer'
+                        : 'bg-salon-sand/60 text-salon-charcoal/40 cursor-not-allowed'
+                    }`}
                   >
-                    CONTINUE TO ARTIST SELECTION →
+                    {selectedServices.length > 0
+                      ? `CONTINUE TO ARTIST SELECTION (${selectedServices.length}) →`
+                      : 'SELECT AT LEAST 1 SERVICE'}
                   </button>
                 </div>
               )}
@@ -306,8 +366,22 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     </h3>
                   </div>
 
-                  <div className="bg-white p-5 rounded-2xl border border-salon-sand text-left text-xs font-sans space-y-2">
-                    <div><strong>Service:</strong> {selectedService}</div>
+                  <div className="bg-white p-5 rounded-2xl border border-salon-sand text-left text-xs font-sans space-y-2.5">
+                    <div>
+                      <strong className="block text-salon-deepBrown mb-1">
+                        Service{selectedServices.length > 1 ? `s (${selectedServices.length})` : ''}:
+                      </strong>
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedServices.map((srv, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2.5 py-1 rounded-full bg-salon-beige border border-salon-sand text-salon-darkBrown font-medium text-[11px]"
+                          >
+                            {srv}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                     <div><strong>Artist:</strong> {selectedStylist}</div>
                     <div><strong>Date & Time:</strong> {selectedDate} at {selectedTime}</div>
                     <div><strong>Location:</strong> First Floor, 22, 5th Ave, Besant Nagar, Chennai</div>

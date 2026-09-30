@@ -30,6 +30,21 @@ export const SignatureServices: React.FC<SignatureServicesProps> = ({ onSelectSe
     }
   };
 
+  const handleServiceClick = (serviceId: string, e: React.MouseEvent<HTMLDivElement>) => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setActiveServiceId((prev) => (prev === serviceId ? '' : serviceId));
+    } else {
+      setActiveServiceId(serviceId);
+    }
+    if (e.currentTarget && containerRef.current) {
+      const itemTop = e.currentTarget.offsetTop;
+      const containerHeight = containerRef.current.offsetHeight;
+      const cardHeight = cardRef.current ? cardRef.current.offsetHeight : 400;
+      const maxTop = Math.max(0, containerHeight - cardHeight);
+      setPreviewY(Math.min(itemTop, maxTop));
+    }
+  };
+
   return (
     <section id="services" className="py-24 md:py-36 bg-salon-darkBrown text-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
@@ -81,10 +96,10 @@ export const SignatureServices: React.FC<SignatureServicesProps> = ({ onSelectSe
                 <motion.div
                   key={service.id}
                   onMouseEnter={(e) => handleServiceHover(service.id, e)}
-                  onClick={(e) => handleServiceHover(service.id, e)}
+                  onClick={(e) => handleServiceClick(service.id, e)}
                   className={`group cursor-pointer p-4 md:p-5 rounded-xl border transition-all duration-300 ${
                     isActive
-                      ? 'bg-white/10 border-salon-gold/60 shadow-lg translate-x-2'
+                      ? 'bg-white/10 border-salon-gold/60 shadow-lg translate-x-1 sm:translate-x-2'
                       : 'border-white/5 hover:border-white/20 hover:bg-white/5'
                   }`}
                 >
@@ -107,23 +122,77 @@ export const SignatureServices: React.FC<SignatureServicesProps> = ({ onSelectSe
                     }`} />
                   </div>
 
-                  {/* Accordion view for small mobile screens */}
-                  {isActive && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                      className="mt-3 pt-3 border-t border-white/10 lg:hidden text-xs font-sans text-salon-sand/80 space-y-3"
-                    >
-                      <p>{service.description}</p>
-                      <button
-                        onClick={() => onSelectService(service.name)}
-                        className="w-full py-2 bg-salon-gold text-salon-darkBrown font-bold uppercase text-[10px] tracking-widest rounded-lg"
+                  {/* Accordion view for mobile & tablet screens */}
+                  <AnimatePresence>
+                    {isActive && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+                        className="mt-4 pt-4 border-t border-white/10 lg:hidden overflow-hidden space-y-3.5"
                       >
-                        BOOK THIS SERVICE
-                      </button>
-                    </motion.div>
-                  )}
+                        {/* Parallel Side-by-Side: Image aligned to the side of the text */}
+                        <div className="flex flex-row gap-3.5 sm:gap-4 items-start">
+                          {/* Image aligned parallel to text */}
+                          <div className="relative w-24 sm:w-32 aspect-[4/5] rounded-xl overflow-hidden shrink-0 border border-salon-gold/30 shadow-md bg-salon-charcoal group/mobimg">
+                            <img
+                              src={service.image}
+                              alt={service.name}
+                              className="w-full h-full object-cover object-center transition-transform duration-700 group-hover/mobimg:scale-105"
+                              loading="lazy"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+                            
+                            {service.duration && (
+                              <span className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-center gap-1 text-[9px] font-sans font-medium text-white/95 bg-black/70 backdrop-blur-xs px-1.5 py-0.5 rounded border border-white/10">
+                                <Clock className="w-2.5 h-2.5 text-salon-gold shrink-0" />
+                                <span className="truncate">{service.duration}</span>
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Text aligned parallel to image */}
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <div className="flex items-center gap-1.5 text-[10px] font-sans tracking-wider text-salon-gold uppercase font-semibold">
+                              <Sparkles className="w-3 h-3 text-salon-gold shrink-0" />
+                              <span>{service.category} ARTISTRY</span>
+                            </div>
+
+                            <p className="text-xs font-sans text-salon-sand/90 font-light leading-relaxed">
+                              {service.description}
+                            </p>
+
+                            {/* Service Highlights (if available) */}
+                            {service.highlights && service.highlights.length > 0 && (
+                              <div className="flex flex-wrap gap-1 pt-0.5">
+                                {service.highlights.map((highlight, hIdx) => (
+                                  <span
+                                    key={hIdx}
+                                    className="text-[9px] font-sans tracking-wide px-2 py-0.5 rounded-full bg-salon-gold/10 border border-salon-gold/25 text-salon-gold font-medium"
+                                  >
+                                    {highlight}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Book CTA Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectService(service.name);
+                          }}
+                          className="w-full py-2.5 sm:py-3 bg-salon-gold text-salon-darkBrown font-sans text-xs font-bold tracking-[0.2em] uppercase rounded-xl flex items-center justify-center gap-2 shadow-lg hover:bg-salon-sand active:scale-[0.98] transition-all"
+                        >
+                          <span>BOOK THIS SERVICE</span>
+                          <ArrowUpRight className="w-4 h-4" />
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               );
             })}
